@@ -1,5 +1,34 @@
 # Snakemake_Eye_Cancer
 
+1. Jan - Workflow Architect & Data (Git & QC) 🏗️
+    Setzt das Git-Repo auf (Struktur, .gitignore).
+    Erstellt die samples.tsv (Input-Daten sauber definieren).
+    Implementiert FastQC/MultiQC in Snakemake.
+    Ziel: Saubere Ordnerstruktur und Qualitätscheck der Rohdaten.
+
+2. Jan - The Mapper (Alignment & Resources) 🧬
+    Schreibt Rules für den Download von Genom & Annotation (wichtig für Splicing!).
+    Erstellt den STAR-Index und die Mapping-Rule.
+    Ziel: Die BAM-Files, die wir für die Analyse brauchen.
+
+3. Luca - Splicing Analyst (Core Logic) ⚙️
+    Kümmert sich um das Herzstück: Das Splicing-Tool (z.B. rMATS/MAJIQ).
+    Schreibt die Snakemake-Rule für den Vergleich (Mutated vs. WT).
+    Ziel: Die rohen Ergebnistabellen (Inclusion Levels/P-Values).
+
+4. Leona - Downstream Investigator (Report & Plots) 📊
+    Schreibt das R-Markdown/Jupyter Notebook.
+    Filtert die Ergebnisse nach unseren 6 Ziel-Genen (ABCC5, CRNDE, etc.).
+    Erstellt die Grafiken (Volcano Plots, Boxplots) für den finalen Report.
+    Ziel: Der "Self-contained Report" (Deliverable).
+
+5. Anja & Marion - Integrator & Reproducibility (Docs & Testing) 📝
+    Schreibt die README (Wie führt man es aus?).
+    Verwaltet die Conda Environments (envs/*.yaml), damit die Versionen stimmen.
+    Macht den "Fresh Clone Test": Prüft, ob alles auf einem fremden PC ohne Fehler durchläuft.
+    Ziel: Sicherstellen, dass wir volle Punktzahl für Reproduzierbarkeit kriegen.
+
+
 Folder structure:
 
 ```
