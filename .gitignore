@@ -1,0 +1,57 @@
+# -----------------------
+# 1. Snakemake Spezifisch
+# -----------------------
+# Enthält temporäre Metadaten, Locks und Shadow-Rules.
+# NIEMALS committen!
+.snakemake/
+
+# -----------------------
+# 2. Pipeline Outputs
+# -----------------------
+# Wir wollen keine Ergebnisse im Git, nur den Code, der sie erzeugt.
+results/
+logs/
+benchmarks/
+
+# -----------------------
+# 3. Große Bio-Daten (Sicherheitsnetz)
+# -----------------------
+# Falls du versehentlich Dateien in falsche Ordner legst,
+# verhindert dies das Hochladen von großen Sequenzdaten.
+*.fastq
+*.fastq.gz
+*.fq.gz
+*.bam
+*.sam
+*.cram
+*.bai
+*.csi
+
+# -----------------------
+# 4. Referenzen & Ressourcen
+# -----------------------
+# Genom-Dateien und Indizes (z.B. STAR Index) gehören nicht ins Git.
+# Ausnahme: Kleine Test-Dateien, falls nötig.
+resources/*.fa
+resources/*.fasta
+resources/*.gtf
+resources/*.gff
+resources/star_index/
+resources/kallisto_index/
+
+# -----------------------
+# 5. Entwicklung & System
+# -----------------------
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# -----------------------
+# 6. Python & R Intermediates
+# -----------------------
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.Rproj.user/
+*.Rhistory
