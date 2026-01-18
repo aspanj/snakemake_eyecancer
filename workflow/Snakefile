@@ -1,0 +1,136 @@
+import pandas as pd
+# --------------------------------------------------------------------- 
+# Konfiguration & Setup
+# --------------------------------------------------------------------- 
+configfile: "config/config.yaml"
+samples = pd.read_csv("config/samples.tsv", sep="\t").set_index("sample_name", drop=False)
+
+# Referenz-Dateien
+GENOME_FA = config["ref"]["genome"]
+GENOME_GTF = config["ref"]["gtf"]
+STAR_INDEX_DIR = config["ref"]["star_index"]
+def get_fastq(wildcards):
+    return [
+        samples.loc[wildcards.sample, "r1_path"],
+        samples.loc[wildcards.sample, "r2_path"]
+    ]
+# --------------------------------------------------------------------- 
+# Rule All: Zieldefinition
+# --------------------------------------------------------------------- 
+rule all:
+    input:
+        # 1. MultiQC Report (fasst QC & Trimming zusammen)
+        "results/qc/multiqc_report.html",
+        # 2. Fertige BAM-Dateien aus dem Mapping
+        expand("results/mapped/{sample}_Aligned.sortedByCoord.out.bam", sample=samples.index)
+# --------------------------------------------------------------------- 
+# 1. FastQC (Raw Data)
+# --------------------------------------------------------------------- 
+rule fastqc_raw:
+    input:
+        get_fastq
+    output:
+        html=["results/qc/fastqc/{sample}_1_fastqc.html", "results/qc/fastqc/{sample}_2_fastqc.html"],
+        zip=["results/qc/fastqc/{sample}_1_fastqc.zip", "results/qc/fastqc/{sample}_2_fastqc.zip"]
+    conda:
+        "envs/qc.yaml"
+    threads: 2
+    shell:
+        "fastqc {input} --outdir results/qc/fastqc -t {threads}"
+# --------------------------------------------------------------------- 
+# 2. FastP (Trimming)
+# --------------------------------------------------------------------- 
+rule fastp:
+    input:
+        sample=get_fastq
+    output:
+        trimmed1="results/trimmed/{sample}_1_trimmed.fastq.gz",
+        trimmed2="results/trimmed/{sample}_2_trimmed.fastq.gz",
+        html="results/qc/fastp/{sample}.html",
+        json="results/qc/fastp/{sample}.json"
+    conda:
+        "envs/trimming.yaml"
+    threads: 8
+    shell:
+        """
+        fastp \
+          --in1 {input.sample[0]} \
+          --in2 {input.sample[1]} \
+          --out1 {output.trimmed1} \
+          --out2 {output.trimmed2} \
+          --detect_adapter_for_pe \
+          --thread {threads} \
+          --html {output.html} \
+          --json {output.json}
+        """
+# ---------------------------------------------------------------------
+# 3. STAR Index (Einmalig)
+# ---------------------------------------------------------------------
+rule star_index:
+    input:
+        fasta=GENOME_FA,
+        gtf=GENOME_GTF
+    output:
+        directory(STAR_INDEX_DIR)
+    conda:
+        "envs/mapping.yaml"
+    threads: 16
+    shell:
+        """
+        mkdir -p {output}
+        STAR --runMode genomeGenerate \
+             --genomeDir {output} \
+             --genomeFastaFiles {input.fasta} \
+             --sjdbGTFfile {input.gtf} \
+             --sjdbOverhang 100 \
+             --runThreadN {threads}
+        """
+
+# --------------------------------------------------------------------- 
+# 4. STAR Mapping
+# --------------------------------------------------------------------- 
+rule star_map:
+    input:
+        fq1="results/trimmed/{sample}_1_trimmed.fastq.gz",
+        fq2="results/trimmed/{sample}_2_trimmed.fastq.gz",
+        idx=STAR_INDEX_DIR
+    output:
+        # STAR erzeugt diverse Files, wir definieren hier das Hauptziel
+        bam="results/mapped/{sample}_Aligned.sortedByCoord.out.bam",
+        log="results/mapped/{sample}_Log.final.out"
+    conda:
+        "envs/mapping.yaml"
+    threads: 16
+    params:
+        # Prefix für STAR Output (muss mit Punkt enden oder Ordner sein)
+        prefix="results/mapped/{sample}_"
+    shell:
+        """
+        STAR --genomeDir {input.idx} \
+             --readFilesIn {input.fq1} {input.fq2} \
+             --readFilesCommand zcat \
+             --outFileNamePrefix {params.prefix} \
+             --runThreadN {threads} \
+             --twopassMode Basic \
+             --outSAMtype BAM SortedByCoordinate \
+             --outSAMstrandField intronMotif \
+             --outSAMattributes All \
+             --quantMode GeneCounts
+        """
+# --------------------------------------------------------------------- 
+# 5. MultiQC (Aggregation)
+# --------------------------------------------------------------------- 
+rule multiqc:
+    input:
+        # Sammelt alle FastQC Reports (R1 und R2)
+        expand("results/qc/fastqc/{sample}_{read}_fastqc.zip", sample=samples.index, read=[1, 2]),
+        # Sammelt alle FastP JSON Reports
+        expand("results/qc/fastp/{sample}.json", sample=samples.index),
+        # Sammelt STAR Logs
+        expand("results/mapped/{sample}_Log.final.out", sample=samples.index)
+    output:
+        "results/qc/multiqc_report.html"
+    conda:
+        "envs/qc.yaml"
+    shell:
+        "multiqc results/qc results/mapped -o results/qc"
