@@ -1,0 +1,5 @@
+# Reference file paths
+ref:
+  genome: "resources/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
+  gtf: "resources/Homo_sapiens.GRCh38.110.gtf"
+  star_index: "resources/star_index"
