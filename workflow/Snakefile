@@ -23,6 +23,17 @@ rule all:
         "results/qc/multiqc_report.html",
         # 2. Fertige BAM-Dateien aus dem Mapping
         expand("results/mapped/{sample}_Aligned.sortedByCoord.out.bam", sample=samples.index)
+	# 3. Rmats
+    input:
+        "results/qc/multiqc_report.html",
+        expand("results/mapped/{sample}_Aligned.sortedByCoord.out.bam", sample=samples.index),
+        # NEW: rMATS outputs
+        "results/rmats/SE.MATS.JC.txt",
+        "results/rmats/A5SS.MATS.JC.txt",
+        "results/rmats/A3SS.MATS.JC.txt",
+        "results/rmats/MXE.MATS.JC.txt",
+        "results/rmats/RI.MATS.JC.txt",
+        "results/rmats/summary.txt" 
 # --------------------------------------------------------------------- 
 # 1. FastQC (Raw Data)
 # --------------------------------------------------------------------- 
@@ -134,3 +145,45 @@ rule multiqc:
         "envs/qc.yaml"
     shell:
         "multiqc results/qc results/mapped -o results/qc"
+#--------------------------------------------------------------------------
+# 6. rMATS
+#--------------------------------------------------------------------------
+def bam_list(group_name):
+    df = samples
+    group_samples = df[df["group"] == group_name].index.tolist()
+    bam_paths = [f"results/mapped/{s}_Aligned.sortedByCoord.out.bam" for s in group_samples]
+    return ",".join(bam_paths)
+rule rmats:
+    input:
+        bams=expand("results/mapped/{sample}_Aligned.sortedByCoord.out.bam", sample=samples.index),
+        gtf=GENOME_GTF
+    output:
+        se="results/rmats/SE.MATS.JC.txt",
+        a5="results/rmats/A5SS.MATS.JC.txt",
+        a3="results/rmats/A3SS.MATS.JC.txt",
+        mxe="results/rmats/MXE.MATS.JC.txt",
+        ri="results/rmats/RI.MATS.JC.txt",
+        summary="results/rmats/summary.txt"
+    conda:
+        "workflow/envs/rmats.yaml"
+    threads: 8
+    params:
+        b1=lambda wc: bam_list("MUT"),
+        b2=lambda wc: bam_list("WT"),
+        readlen=101,
+        libtype="fr-unstranded"
+    shell:
+        r"""
+        mkdir -p results/rmats/tmp
+        rmats.py \
+          --b1 '{params.b1}' \
+          --b2 '{params.b2}' \
+          --gtf {input.gtf} \
+          --od results/rmats \
+          --tmp results/rmats/tmp \
+          --readLength {params.readlen} \
+          -t paired \
+          --libType {params.libtype} \
+          --nthread {threads}
+        """
+
