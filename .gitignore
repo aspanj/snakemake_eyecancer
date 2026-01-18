@@ -26,6 +26,26 @@ benchmarks/
 *.cram
 *.bai
 *.csi
+# large data
+bam/
+*.bam
+*.bai
+
+# results
+results/
+results_rmats/
+*/tmp/
+
+# references
+ref/
+*.gtf
+*.gtf.gz
+*.fa
+*.fa.gz
+
+# misc
+.DS_Store
+__pycache__/
 
 # -----------------------
 # 4. Referenzen & Ressourcen

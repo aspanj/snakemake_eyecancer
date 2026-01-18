@@ -1,0 +1,8 @@
+name: rmats
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.10
+  - rmats=4.3.0
+  - samtools
