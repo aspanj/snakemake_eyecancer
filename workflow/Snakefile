@@ -2,12 +2,13 @@ import pandas as pd
 # --------------------------------------------------------------------- 
 # Konfiguration & Setup
 # --------------------------------------------------------------------- 
-# configfile: "config/config.yaml"
+configfile: "config/config.yaml"
 samples = pd.read_csv("config/samples.tsv", sep="\t").set_index("sample_name", drop=False)
-# Referenz-Dateien (Dummy-Pfade, analog zu deinem Server-Setup)
-GENOME_FA = "resources/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
-GENOME_GTF = "resources/Homo_sapiens.GRCh38.110.gtf"
-STAR_INDEX_DIR = "resources/star_index"
+
+# Referenz-Dateien
+GENOME_FA = config["ref"]["genome"]
+GENOME_GTF = config["ref"]["gtf"]
+STAR_INDEX_DIR = config["ref"]["star_index"]
 def get_fastq(wildcards):
     return [
         samples.loc[wildcards.sample, "r1_path"],
