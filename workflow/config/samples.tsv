@@ -1,9 +1,0 @@
-sample	group	bam
-SRR628582	WT	/path/to/bam/SRR628582_Aligned.sortedByCoord.out.bam
-SRR628583	WT	/path/to/bam/SRR628583_Aligned.sortedByCoord.out.bam
-SRR628584	WT	/path/to/bam/SRR628584_Aligned.sortedByCoord.out.bam
-SRR628585	WT	/path/to/bam/SRR628585_Aligned.sortedByCoord.out.bam
-SRR628586	WT	/path/to/bam/SRR628586_Aligned.sortedByCoord.out.bam
-SRR628587	MUT	/path/to/bam/SRR628587_Aligned.sortedByCoord.out.bam
-SRR628588	MUT	/path/to/bam/SRR628588_Aligned.sortedByCoord.out.bam
-SRR628589	MUT	/path/to/bam/SRR628589_Aligned.sortedByCoord.out.bam

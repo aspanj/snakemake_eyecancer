@@ -22,12 +22,8 @@ rule all:
         # 1. MultiQC Report (fasst QC & Trimming zusammen)
         "results/qc/multiqc_report.html",
         # 2. Fertige BAM-Dateien aus dem Mapping
-        expand("results/mapped/{sample}_Aligned.sortedByCoord.out.bam", sample=samples.index)
-	# 3. Rmats
-    input:
-        "results/qc/multiqc_report.html",
         expand("results/mapped/{sample}_Aligned.sortedByCoord.out.bam", sample=samples.index),
-        # NEW: rMATS outputs
+        # 3. Rmats outputs
         "results/rmats/SE.MATS.JC.txt",
         "results/rmats/A5SS.MATS.JC.txt",
         "results/rmats/A3SS.MATS.JC.txt",
@@ -44,8 +40,8 @@ rule fastqc_raw:
         html=["results/qc/fastqc/{sample}_1_fastqc.html", "results/qc/fastqc/{sample}_2_fastqc.html"],
         zip=["results/qc/fastqc/{sample}_1_fastqc.zip", "results/qc/fastqc/{sample}_2_fastqc.zip"]
     conda:
-        "envs/qc.yaml"
-    threads: 2
+        "workflow/envs/qc.yaml"
+    threads: config["threads"].get("fastqc", 2)
     shell:
         "fastqc {input} --outdir results/qc/fastqc -t {threads}"
 # --------------------------------------------------------------------- 
@@ -60,8 +56,8 @@ rule fastp:
         html="results/qc/fastp/{sample}.html",
         json="results/qc/fastp/{sample}.json"
     conda:
-        "envs/trimming.yaml"
-    threads: 8
+        "workflow/envs/trimming.yaml"
+    threads: config["threads"].get("fastp", 8)
     shell:
         """
         fastp \
@@ -84,8 +80,8 @@ rule star_index:
     output:
         directory(STAR_INDEX_DIR)
     conda:
-        "envs/mapping.yaml"
-    threads: 16
+        "workflow/envs/mapping.yaml"
+    threads: config["threads"].get("star", 16)
     shell:
         """
         mkdir -p {output}
@@ -110,8 +106,8 @@ rule star_map:
         bam="results/mapped/{sample}_Aligned.sortedByCoord.out.bam",
         log="results/mapped/{sample}_Log.final.out"
     conda:
-        "envs/mapping.yaml"
-    threads: 16
+        "workflow/envs/mapping.yaml"
+    threads: config["threads"].get("star", 16)
     params:
         # Prefix für STAR Output (muss mit Punkt enden oder Ordner sein)
         prefix="results/mapped/{sample}_"
@@ -142,7 +138,7 @@ rule multiqc:
     output:
         "results/qc/multiqc_report.html"
     conda:
-        "envs/qc.yaml"
+        "workflow/envs/qc.yaml"
     shell:
         "multiqc results/qc results/mapped -o results/qc"
 #--------------------------------------------------------------------------
@@ -166,7 +162,7 @@ rule rmats:
         summary="results/rmats/summary.txt"
     conda:
         "workflow/envs/rmats.yaml"
-    threads: 8
+    threads: config["threads"].get("rmats", 8)
     params:
         b1=lambda wc: bam_list("MUT"),
         b2=lambda wc: bam_list("WT"),
