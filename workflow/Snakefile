@@ -40,7 +40,7 @@ rule fastqc_raw:
         html=["results/qc/fastqc/{sample}_1_fastqc.html", "results/qc/fastqc/{sample}_2_fastqc.html"],
         zip=["results/qc/fastqc/{sample}_1_fastqc.zip", "results/qc/fastqc/{sample}_2_fastqc.zip"]
     conda:
-        "workflow/envs/qc.yaml"
+        "envs/qc.yaml"
     threads: config["threads"].get("fastqc", 2)
     shell:
         "fastqc {input} --outdir results/qc/fastqc -t {threads}"
@@ -56,7 +56,7 @@ rule fastp:
         html="results/qc/fastp/{sample}.html",
         json="results/qc/fastp/{sample}.json"
     conda:
-        "workflow/envs/trimming.yaml"
+        "envs/trimming.yaml"
     threads: config["threads"].get("fastp", 8)
     shell:
         """
@@ -80,7 +80,7 @@ rule star_index:
     output:
         directory(STAR_INDEX_DIR)
     conda:
-        "workflow/envs/mapping.yaml"
+        "envs/mapping.yaml"
     threads: config["threads"].get("star", 16)
     shell:
         """
@@ -106,7 +106,7 @@ rule star_map:
         bam="results/mapped/{sample}_Aligned.sortedByCoord.out.bam",
         log="results/mapped/{sample}_Log.final.out"
     conda:
-        "workflow/envs/mapping.yaml"
+        "envs/mapping.yaml"
     threads: config["threads"].get("star", 16)
     params:
         # Prefix für STAR Output (muss mit Punkt enden oder Ordner sein)
@@ -138,7 +138,7 @@ rule multiqc:
     output:
         "results/qc/multiqc_report.html"
     conda:
-        "workflow/envs/qc.yaml"
+        "envs/qc.yaml"
     shell:
         "multiqc results/qc results/mapped -o results/qc"
 #--------------------------------------------------------------------------
@@ -161,7 +161,7 @@ rule rmats:
         ri="results/rmats/RI.MATS.JC.txt",
         summary="results/rmats/summary.txt"
     conda:
-        "workflow/envs/rmats.yaml"
+        "envs/rmats.yaml"
     threads: config["threads"].get("rmats", 8)
     params:
         b1=lambda wc: bam_list("MUT"),
@@ -171,9 +171,11 @@ rule rmats:
     shell:
         r"""
         mkdir -p results/rmats/tmp
+        echo "{params.b1}" > results/rmats/b1.txt
+        echo "{params.b2}" > results/rmats/b2.txt
         rmats.py \
-          --b1 '{params.b1}' \
-          --b2 '{params.b2}' \
+          --b1 results/rmats/b1.txt \
+          --b2 results/rmats/b2.txt \
           --gtf {input.gtf} \
           --od results/rmats \
           --tmp results/rmats/tmp \
