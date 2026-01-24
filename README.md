@@ -31,8 +31,10 @@ This Snakefile describes a bioinformatic pipeline for RNA-Seq analysis that focu
 Explanation of the individual steps in the workflow:
 
 ## 1. Configuration & Input
-• Configuration: The pipeline reads settings from config/config.yaml and sample information from config/samples.tsv.
-• Samples: The sample list is used to define file paths (r1_path, r2_path) and group affiliations 
+• Configuration: 
+The pipeline reads settings from config/config.yaml and sample information from config/samples.tsv.
+• Samples: 
+The sample list is used to define file paths (r1_path, r2_path) and group affiliations 
 
 ## 2. Quality control & preprocessing
 The workflow begins with checking and cleaning the raw data:
