@@ -7,11 +7,13 @@ The results of the study F3B1 mutations are associated with alternative splicing
 The following tools were used for the analysis in the study:
 - Alignment: TopHat
 - Differential splicing analysis: DEXSeq & MATS
+
 → they trimmed the RNA-seq data to 99bp
 
 We on the other hand did use these tools:
 - Alignment: STAR
 - Differential splicing analysis: rMATS
+
 → we trimmed the RNA-seq data to 101bp
 
 The study found differential splicing in the following genes:
@@ -23,7 +25,8 @@ The study found differential splicing in the following genes:
 - ADAM12
 
 Our results are as follows:
-…
+
+... to be added
 
 # Snakefile
 This Snakefile describes a bioinformatic pipeline for RNA-Seq analysis that focuses specifically on the detection of differential splicing (splicing variants).
@@ -32,22 +35,31 @@ Explanation of the individual steps in the workflow:
 
 ## 1. Configuration & Input
 • Configuration: 
+
 The pipeline reads settings from config/config.yaml and sample information from config/samples.tsv.
+
 • Samples: 
+
 The sample list is used to define file paths (r1_path, r2_path) and group affiliations 
 
 ## 2. Quality control & preprocessing
 The workflow begins with checking and cleaning the raw data:
+
 • Quality check (FastQC): (rule fastqc_raw)
+
 • Trimming (FastP): (rule fastp)
 
 → Generates trimmed FASTQ files and JSON/HTML reports.
 
 ## 3. Alignment (mapping)
 The trimmed reads are mapped against the reference genome:
+
 • Index creation: (rule star_index)
+
 Creates a one-time index for the STAR aligner from the reference genome(FASTA) and annotation (GTF).
+
 • Mapping: (rule star_map)
+
 Uses STAR to align the reads.
 
 Important: TwopassMode Basic is used. This is crucial for splicing analyses, as
@@ -58,11 +70,13 @@ improve the alignment.
 
 ## 4. Summary report
 • MultiQC: (rule multiqc)
+
 Collects all reports from FastQC, FastP, and STAR and combines them into a single HTML file (multiqc_report.html) so that you can quickly see whether everything worked technically.
 
 ## 5. Splicing analysis
 • rMATS: (rule rmats)
-→ This is the actual analysis step for alternative splicing.
+
+This is the actual analysis step for alternative splicing.
 Grouping: A Python function (bam_list) automatically sorts the BAM files into two groups: "MUT" (mutant/treated) and "WT" (wildtype/control), based on the group column in samples.tsv.
 
 Analysis: rMATS compares these two groups to find significant differences in various
