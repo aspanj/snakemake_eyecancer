@@ -29,7 +29,10 @@ rule all:
         "results/rmats/A3SS.MATS.JC.txt",
         "results/rmats/MXE.MATS.JC.txt",
         "results/rmats/RI.MATS.JC.txt",
-        "results/rmats/summary.txt" 
+        "results/rmats/summary.txt",
+        # 4. Downstream Analysis
+        "downstream/figures/venn_diagram.png"
+
 # --------------------------------------------------------------------- 
 # 1. FastQC (Raw Data)
 # --------------------------------------------------------------------- 
@@ -184,4 +187,23 @@ rule rmats:
           --libType {params.libtype} \
           --nthread {threads}
         """
+
+# ---------------------------------------------------------------------
+# 7. Downstream Analysis (Custom Python Script)
+# ---------------------------------------------------------------------
+rule downstream_analysis:
+    input:
+        se="results/rmats/SE.MATS.JC.txt",
+        a5="results/rmats/A5SS.MATS.JC.txt",
+        a3="results/rmats/A3SS.MATS.JC.txt",
+        mxe="results/rmats/MXE.MATS.JC.txt",
+        ri="results/rmats/RI.MATS.JC.txt"
+    output:
+        "downstream/figures/venn_diagram.png",
+        "downstream/our_results_FDR05.txt",
+        "downstream/venn_summary.txt"
+    conda:
+        "envs/downstream.yaml"
+    shell:
+        "python downstream/downstream.py"
 
