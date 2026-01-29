@@ -1,0 +1,5 @@
+FDR cutoff: 0.05
+Paper targets: ['ABCC5', 'ADAM12', 'ANKHD1', 'CRNDE', 'GUSBP11', 'UQCC']
+Our Results: ['ANKHD1']
+Overlap: ['ANKHD1']
+Paper-genes: ['ABCC5', 'ADAM12', 'CRNDE', 'GUSBP11', 'UQCC']
