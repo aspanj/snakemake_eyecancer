@@ -1,0 +1,51 @@
+# Snakemake Eye Cancer Pipeline - Ablaufbeschreibung
+
+Diese Pipeline automatisiert die Analyse von RNA-Seq Daten, beginnend bei den Rohdaten (FASTQ) bis hin zur differenziellen Splicing-Analyse und Visualisierung.
+
+## 1. Qualitätskontrolle der Rohdaten (Raw QC)
+*   **Tool:** FastQC
+*   **Beschreibung:** Zuerst werden die Sequenzierqualitäten der rohen FASTQ-Dateien (R1 und R2) überprüft.
+*   **Output:** HTML-Berichte pro Sample im Ordner `results/qc/fastqc/`.
+
+## 2. Trimming & Filterung
+*   **Tool:** fastp
+*   **Beschreibung:** Adaptersequenzen und Basen mit schlechter Qualität werden entfernt. Dies verbessert die Genauigkeit des nachfolgenden Mappings.
+*   **Output:** 
+    *   Bereinigte FASTQ-Dateien in `results/trimmed/`.
+    *   JSON/HTML Reports in `results/qc/fastp/`.
+
+## 3. Referenz-Vorbereitung (Indexierung)
+*   **Tool:** STAR
+*   **Beschreibung:** Falls noch nicht vorhanden, wird ein Index für das Referenzgenom (GRCh38) erstellt. Dies ist notwendig, damit der Aligner die Reads effizient zuordnen kann.
+*   **Output:** Index-Dateien in `resources/star_index/`.
+
+## 4. Alignment (Mapping)
+*   **Tool:** STAR
+*   **Beschreibung:** Die bereinigten Reads werden gegen das Referenzgenom gemappt. STAR wird im "Two-Pass Mode" verwendet, was die Erkennung von Splice-Junctions verbessert. Außerdem werden Gen-Counts für die Quantifizierung generiert.
+*   **Output:** Sortierte BAM-Dateien (`.bam`) und Logs in `results/mapped/`.
+
+## 5. Aggregierte Qualitätskontrolle
+*   **Tool:** MultiQC
+*   **Beschreibung:** Alle QC-Berichte (FastQC, fastp) und Mapping-Statistiken (STAR Logs) werden in einem einzigen, interaktiven HTML-Bericht zusammengefasst.
+*   **Output:** `results/qc/multiqc_report.html`.
+
+## 6. Differenzielle Splicing-Analyse
+*   **Tool:** rMATS
+*   **Beschreibung:** Die Pipeline vergleicht Splicing-Events zwischen den Gruppen "MUT" (Mutation) und "WT" (Wildtyp). Es werden verschiedene Splicing-Typen untersucht:
+    *   Skipped Exon (SE)
+    *   Alternative 5' Splice Site (A5SS)
+    *   Alternative 3' Splice Site (A3SS)
+    *   Mutually Exclusive Exons (MXE)
+    *   Retained Intron (RI)
+*   **Output:** Ergebnistabellen für jeden Splicing-Typ in `results/rmats/`.
+
+## 7. Downstream Analyse & Visualisierung
+*   **Tool:** Custom Python Script (`downstream.py`)
+*   **Beschreibung:**
+    *   Filtert die rMATS-Ergebnisse auf signifikante Hits (FDR < 0.05).
+    *   Vergleicht die gefundenen Gene mit einer bekannten Liste aus der Literatur ("Paper Genes").
+    *   Erstellt ein Venn-Diagramm zur Überlappung.
+*   **Output:**
+    *   Liste der signifikanten Gene: `downstream/our_results_FDR05.txt`
+    *   Venn-Diagramm: `downstream/figures/venn_diagram.png`
+    *   Zusammenfassung: `downstream/venn_summary.txt`
